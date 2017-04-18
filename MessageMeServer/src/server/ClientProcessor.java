@@ -29,7 +29,7 @@ public class ClientProcessor implements Runnable {
             InputStream input = clientSocket.getInputStream();
             OutputStream output = clientSocket.getOutputStream();
             long time = System.currentTimeMillis();
-            output.write(("HTTP/1.1 200 OK\n\nWorkerRunnable: " + this.serverText + " - " + time + "").getBytes());
+            output.write(("ClientProcessor: " + this.serverText + " - " + time + "").getBytes()); //HTTP/1.1 200 OK\n\n
             output.close();
             input.close();
             System.out.println("Request processed: " + time);
