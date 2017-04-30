@@ -5,12 +5,11 @@
  */
 package client;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ServerSocket;
+import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Scanner;
 
 /**
  *
@@ -21,19 +20,42 @@ public class Client {
     private final int PORT = 9000; //Port for connection
     private final String HOST = "localhost"; //Host for connection (ip of the server)
 
-    private String serverMessage; //Incoming messages from server
     private Socket clientSocket;
-    private ServerSocket serverSocket;
-    private DataOutputStream serverOut, clientOut;
+    private Scanner input;
+    private PrintWriter output;
 
-    public Client() throws IOException {
-        clientSocket = new Socket(HOST, PORT);
-
-        clientOut = new DataOutputStream(clientSocket.getOutputStream());
-        BufferedReader entry = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        while ((serverMessage = entry.readLine()) != null) { //Show server messages
-            System.out.println(serverMessage);
+    public Client() {
+        try {
+            clientSocket = new Socket(HOST, PORT);
+            input = new Scanner(new InputStreamReader(clientSocket.getInputStream()));
+            output = new PrintWriter(clientSocket.getOutputStream(), true);
+        } catch (IOException ex) {
+            System.out.println("Unable to connect to server.");
         }
+    }
+
+    public void close() {
+        try {
+            if (input != null) {
+                input.close();
+            }
+            if (output != null) {
+                output.close();
+            }
+            if (clientSocket != null) {
+                clientSocket.close();
+            }
+        } catch (IOException e) {
+            System.out.print(e.getMessage());
+        }
+    }
+
+    public String receiveMessage() throws IOException {
+        return input.nextLine();
+    }
+
+    public void sendMessage(String message) throws IOException {
+        output.println(message);
     }
 
 }

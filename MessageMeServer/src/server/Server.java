@@ -8,6 +8,7 @@ package server;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.IOException;
+import java.util.LinkedList;
 
 /**
  *
@@ -20,8 +21,11 @@ public class Server implements Runnable {
     protected boolean isStopped = false;
     protected Thread runningThread = null;
 
+    protected LinkedList<ClientConnection> connections;
+
     public Server(int port) {
         this.serverPort = port;
+        this.connections = new LinkedList<>();
     }
 
     public void run() {
@@ -41,7 +45,12 @@ public class Server implements Runnable {
                 }
                 throw new RuntimeException("Error accepting client connection", e);
             }
-            new Thread(new ClientProcessor(clientSocket, "MessageMe Server")).start();
+            try {
+                connections.add(new ClientConnection(clientSocket, this));
+                connections.getLast().start();
+            } catch (IOException ex) {
+                System.out.println("Error processing client");
+            }
         }
         System.out.println("Server Stopped.");
     }
@@ -62,8 +71,21 @@ public class Server implements Runnable {
     private void openServerSocket() {
         try {
             this.serverSocket = new ServerSocket(this.serverPort);
+            System.out.println("Server is listening on " + serverPort);
         } catch (IOException e) {
             throw new RuntimeException("Cannot open port 8080", e);
+        }
+    }
+
+    public void disconnect(ClientConnection client) {
+        connections.remove(client);
+    }
+
+    public void broadcast(ClientConnection activeClient, String message) {
+        for (ClientConnection client : connections) {
+            if (!client.equals(activeClient)) {
+                client.sendMessage(message);
+            }
         }
     }
 
