@@ -18,30 +18,10 @@ import java.util.logging.Logger;
 public class main {
 
     public static void main(String[] args) {
-        /*try {
-            Client tester = new Client();
+        ClientFrame cf = new ClientFrame();
 
-            BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
-            int op;
-
-            System.out.println("Press 1 to finish connection.");
-            do {
-                System.out.println("Press 2 to Send a message.");
-                op = Integer.valueOf(read.readLine());
-                if (op == 2) {
-                    System.out.println("Message Enter User (ID) Enter receiver (ID) ");
-                    String message = read.readLine();
-                    int fromID = Integer.valueOf(read.readLine());
-                    int toID = Integer.valueOf(read.readLine());
-                    tester.sendMessage(message, fromID, toID);
-                }
-
-            } while (op != 1);
-        } catch (Exception e) {
-            System.out.println("Connection lost.");
-        }*/
-
-        Thread client1Thread = new Thread(() -> {
+        //Just a few test
+        /*Thread client1Thread = new Thread(() -> {
             try {
                 Client client1 = new Client();
                 // Thread.sleep(1000);
@@ -64,7 +44,7 @@ public class main {
             client2.close();
         } catch (Exception e) {
             System.out.println("Just in case!");
-        }
+        }*/
         //});
         //Client2Thread.start();
     }

@@ -28,7 +28,7 @@ public class ClientConnection extends Thread {
         this.server = server;
         input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         output = new PrintWriter(clientSocket.getOutputStream(), true);
-        this.serverText = "MessageMe Server";
+        this.serverText = "MessageMe Server"; //Need to be used!
     }
 
     public void run() {
@@ -43,18 +43,18 @@ public class ClientConnection extends Thread {
                     close();
                     break;
                 }
-                readMessage(message);
+                readMessageOfClient(message);
             }
         } catch (IOException e) {
             System.out.print(e.getMessage());
         }
     }
 
-    public void readMessage(String message) {
+    public void readMessageOfClient(String message) {
         server.broadcast(this, message);
     }
 
-    public void sendMessage(String message) {
+    public void sendMessageToClient(String message) {
         output.println(message);
     }
 

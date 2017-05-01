@@ -84,7 +84,7 @@ public class Server implements Runnable {
     public void broadcast(ClientConnection activeClient, String message) {
         for (ClientConnection client : connections) {
             if (!client.equals(activeClient)) {
-                client.sendMessage(message);
+                client.sendMessageToClient(message);
             }
         }
     }
