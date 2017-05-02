@@ -5,10 +5,15 @@
  */
 package server;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.IOException;
 import java.util.LinkedList;
+import javax.swing.JOptionPane;
+import server.controllers.Master;
 
 /**
  *
@@ -23,9 +28,12 @@ public class Server implements Runnable {
 
     protected LinkedList<ClientConnection> connections;
 
+    protected Master master;
+
     public Server(int port) {
         this.serverPort = port;
         this.connections = new LinkedList<>();
+        master = new Master();
     }
 
     public void run() {
@@ -77,13 +85,17 @@ public class Server implements Runnable {
         }
     }
 
-    public void disconnect(ClientConnection client) {
+    public synchronized void disconnect(ClientConnection client) {
         connections.remove(client);
+        String s = "";
     }
 
-    public void broadcast(ClientConnection activeClient, String message) {
+    public void broadcast(ClientConnection activeClient, String user, String message) {
         for (ClientConnection client : connections) {
-            if (!client.equals(activeClient)) {
+            //if (!client.equals(activeClient)) {
+            //    client.sendMessageToClient(message);
+            //}
+            if (client.user.equals(user)) {
                 client.sendMessageToClient(message);
             }
         }

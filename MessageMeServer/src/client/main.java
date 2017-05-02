@@ -5,6 +5,7 @@
  */
 package client;
 
+import client.forms.ChatForm;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,7 +19,7 @@ import java.util.logging.Logger;
 public class main {
 
     public static void main(String[] args) {
-        ClientFrame cf = new ClientFrame();
+        //ChatForm cf = new ChatForm();
 
         //Just a few test
         /*Thread client1Thread = new Thread(() -> {

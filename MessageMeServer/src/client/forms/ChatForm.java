@@ -3,38 +3,37 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package client;
+package client.forms;
 
+import client.Client;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**
  *
  * @author john
  */
-public class ClientFrame extends javax.swing.JFrame {
+public class ChatForm extends javax.swing.JFrame {
 
     Client client = null;
 
     /**
      * Creates new form ClientFrame
      */
-    public ClientFrame() {
+    public ChatForm(Client client) {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setVisible(true);
+
+        this.client = client;
+
+        lUser.setText("User - " + client.getUser());
+        initThreads();
     }
 
     private void initThreads() {
         Thread incomingMessages = new Thread(() -> {
             String s;
-            /*try {
-                Thread.sleep(100000000);
-            } catch (InterruptedException ex) {
-                System.out.println("Im not going to sleep!");
-            }*/
             while (true) {
                 if (client != null) {
                     try {
@@ -42,7 +41,7 @@ public class ClientFrame extends javax.swing.JFrame {
                         System.out.println(s);
                         taMessages.setText(taMessages.getText() + "\n" + s);
                     } catch (Exception e) {
-                        System.out.println("i dont know!");
+                        System.out.println("I dont know!");
                     };
                 }
             }
@@ -62,8 +61,8 @@ public class ClientFrame extends javax.swing.JFrame {
         tMessage = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
         taMessages = new javax.swing.JTextArea();
-        bConnection = new javax.swing.JButton();
         bSend = new javax.swing.JButton();
+        lUser = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -71,19 +70,14 @@ public class ClientFrame extends javax.swing.JFrame {
         taMessages.setRows(5);
         jScrollPane1.setViewportView(taMessages);
 
-        bConnection.setText("Iniciar conexion");
-        bConnection.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bConnectionActionPerformed(evt);
-            }
-        });
-
         bSend.setText("Enviar");
         bSend.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bSendActionPerformed(evt);
             }
         });
+
+        lUser.setText("User - ");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -93,24 +87,23 @@ public class ClientFrame extends javax.swing.JFrame {
                 .addGap(19, 19, 19)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 255, Short.MAX_VALUE)
-                        .addComponent(bConnection))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(tMessage)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(bSend))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 362, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 362, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lUser, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 13, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(bConnection)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
+                .addContainerGap(20, Short.MAX_VALUE)
+                .addComponent(lUser)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(bSend)
@@ -121,20 +114,12 @@ public class ClientFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void bConnectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bConnectionActionPerformed
-        if (client == null) {
-            client = new Client();
-            initThreads();
-        } else {
-            JOptionPane.showMessageDialog(null, "Ya esta conectado!");
-        }
-    }//GEN-LAST:event_bConnectionActionPerformed
-
     private void bSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bSendActionPerformed
 
         if (client != null && !tMessage.getText().equals("")) {
             try {
-                client.sendMessage(tMessage.getText());
+                String message = "ChatMessage-" + client.getUser() + "-" + tMessage.getText();
+                client.sendMessage(message);
                 taMessages.setText(taMessages.getText() + "\n" + tMessage.getText());
                 tMessage.setText("");
             } catch (IOException ex) {
@@ -145,9 +130,9 @@ public class ClientFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_bSendActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton bConnection;
     private javax.swing.JButton bSend;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lUser;
     private javax.swing.JTextField tMessage;
     public static javax.swing.JTextArea taMessages;
     // End of variables declaration//GEN-END:variables

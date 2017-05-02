@@ -24,11 +24,14 @@ public class Client {
     private Scanner input;
     private PrintWriter output;
 
+    private String user;
+
     public Client() {
         try {
             clientSocket = new Socket(HOST, PORT);
             input = new Scanner(new InputStreamReader(clientSocket.getInputStream()));
             output = new PrintWriter(clientSocket.getOutputStream(), true);
+            user = "connected";
         } catch (IOException ex) {
             System.out.println("Unable to connect to server.");
         }
@@ -36,6 +39,7 @@ public class Client {
 
     public void close() {
         try {
+            sendMessage("Close");
             if (input != null) {
                 input.close();
             }
@@ -56,6 +60,15 @@ public class Client {
 
     public void sendMessage(String message) throws IOException {
         output.println(message);
+    }
+
+    //GETTERS SETTERS
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 
 }
