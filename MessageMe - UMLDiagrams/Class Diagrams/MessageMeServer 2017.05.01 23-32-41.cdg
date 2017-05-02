@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ClassDiagram name="MessageMeServer">
+  <ClassDiagramComponents>
+    <Class name="Client" package="client" visibility="public" xPosition="1476.0" yPosition="20.0">
+      <Fields>
+        <Field name="PORT" type="int" visibility="private" isFinal="true"/>
+        <Field name="HOST" type="String" visibility="private" isFinal="true"/>
+        <Field name="clientSocket" type="Socket" visibility="private"/>
+        <Field name="input" type="Scanner" visibility="private"/>
+        <Field name="output" type="PrintWriter" visibility="private"/>
+        <Field name="user" type="String" visibility="private"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public"/>
+      </Constructors>
+      <Methods>
+        <Method name="close" returnType="void" visibility="public"/>
+        <Method name="receiveMessage" returnType="String" visibility="public"/>
+        <Method name="sendMessage" returnType="void" visibility="public">
+          <Argument type="String" name="message"/>
+        </Method>
+        <Method name="getUser" returnType="String" visibility="public"/>
+        <Method name="setUser" returnType="void" visibility="public">
+          <Argument type="String" name="user"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="ChatForm" package="client.forms" visibility="public" xPosition="1814.0" yPosition="58.0">
+      <Fields>
+        <Field name="client" type="Client" visibility="package"/>
+        <Field name="bSend" type="javax.swing.JButton" visibility="private"/>
+        <Field name="jScrollPane1" type="javax.swing.JScrollPane" visibility="private"/>
+        <Field name="lUser" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="tMessage" type="javax.swing.JTextField" visibility="private"/>
+        <Field name="taMessages" type="javax.swing.JTextArea" visibility="public" isStatic="true"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public">
+          <Argument type="Client" name="client"/>
+        </Constructor>
+      </Constructors>
+      <Methods>
+        <Method name="initThreads" returnType="void" visibility="private"/>
+        <Method name="bSendActionPerformed" returnType="void" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="Login" package="client.forms" visibility="public" xPosition="1398.0" yPosition="429.0">
+      <Fields>
+        <Field name="client" type="Client" visibility="private"/>
+        <Field name="bLogIn" type="javax.swing.JButton" visibility="private"/>
+        <Field name="bRegistration" type="javax.swing.JButton" visibility="private"/>
+        <Field name="jLabel1" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="jLabel2" type="javax.swing.JLabel" visibility="private"/>
+        <Field name="tPassword" type="javax.swing.JPasswordField" visibility="private"/>
+        <Field name="tUser" type="javax.swing.JTextField" visibility="private"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public"/>
+      </Constructors>
+      <Methods>
+        <Method name="exitProcedure" returnType="void" visibility="public"/>
+        <Method name="initConnection" returnType="void" visibility="private"/>
+        <Method name="authenticateRequest" returnType="void" visibility="private">
+          <Argument type="String" name="user"/>
+          <Argument type="char[]" name="dots"/>
+        </Method>
+        <Method name="bLogInActionPerformed" returnType="void" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="bRegistrationActionPerformed" returnType="void" visibility="private">
+          <Argument type="java.awt.event.ActionEvent" name="evt"/>
+        </Method>
+        <Method name="main" returnType="void" visibility="public" isStatic="true">
+          <Argument type="String" name="args"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="ClientConnection" package="server" visibility="public" xPosition="1102.0" yPosition="20.0">
+      <Fields>
+        <Field name="server" type="Server" visibility="protected"/>
+        <Field name="clientSocket" type="Socket" visibility="protected"/>
+        <Field name="serverText" type="String" visibility="protected"/>
+        <Field name="input" type="BufferedReader" visibility="protected"/>
+        <Field name="output" type="PrintWriter" visibility="protected"/>
+        <Field name="user" type="String" visibility="protected"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public">
+          <Argument type="Socket" name="clientSocket"/>
+          <Argument type="Server" name="server"/>
+        </Constructor>
+      </Constructors>
+      <Methods>
+        <Method name="run" returnType="void" visibility="public"/>
+        <Method name="readMessageOfClient" returnType="void" visibility="public">
+          <Argument type="String" name="message"/>
+        </Method>
+        <Method name="sendMessageToClient" returnType="void" visibility="public">
+          <Argument type="String" name="message"/>
+        </Method>
+        <Method name="close" returnType="void" visibility="public"/>
+      </Methods>
+    </Class>
+    <Class name="Master" package="server.controllers" visibility="public" xPosition="18.0" yPosition="20.0">
+      <Fields>
+        <Field name="routeUser" type="String" visibility="private"/>
+        <Field name="Modo" type="int" visibility="private"/>
+        <Field name="userFile" type="ArrayList&lt;String[]&gt;" visibility="private"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public"/>
+      </Constructors>
+      <Methods>
+        <Method name="loadData" returnType="void" visibility="private"/>
+        <Method name="authenticate" returnType="boolean" visibility="public" isSynchronized="true">
+          <Argument type="String" name="user"/>
+          <Argument type="String" name="password"/>
+        </Method>
+        <Method name="checkFile" returnType="boolean" visibility="public" isSynchronized="true">
+          <Argument type="String" name="route"/>
+        </Method>
+        <Method name="getUserFile" returnType="ArrayList&lt;String[]&gt;" visibility="private"/>
+        <Method name="addUser" returnType="int" visibility="public" isSynchronized="true">
+          <Argument type="String" name="user"/>
+          <Argument type="String" name="password"/>
+          <Argument type="String" name="password1"/>
+          <Argument type="String" name="level"/>
+        </Method>
+        <Method name="deleteUser" returnType="int" visibility="public" isSynchronized="true">
+          <Argument type="String" name="user"/>
+        </Method>
+        <Method name="addToUserFile" returnType="boolean" visibility="private">
+          <Argument type="String" name="user"/>
+          <Argument type="String" name="password"/>
+          <Argument type="String" name="level"/>
+        </Method>
+        <Method name="eraseToUserFile" returnType="int" visibility="private">
+          <Argument type="String" name="user"/>
+        </Method>
+        <Method name="Rotk" returnType="String" visibility="public">
+          <Argument type="String" name="s"/>
+        </Method>
+        <Method name="Morse" returnType="String" visibility="public">
+          <Argument type="String" name="s"/>
+        </Method>
+        <Method name="validateWyN" returnType="boolean" visibility="public">
+          <Argument type="String" name="s"/>
+        </Method>
+        <Method name="validateMorse" returnType="boolean" visibility="public">
+          <Argument type="String" name="s"/>
+        </Method>
+        <Method name="validateWord" returnType="boolean" visibility="public">
+          <Argument type="String" name="s"/>
+        </Method>
+        <Method name="validateNumber" returnType="boolean" visibility="public">
+          <Argument type="String" name="s"/>
+        </Method>
+        <Method name="validateLength" returnType="boolean" visibility="public">
+          <Argument type="String" name="s"/>
+          <Argument type="int" name="range"/>
+        </Method>
+        <Method name="getRouteUser" returnType="String" visibility="public"/>
+        <Method name="setRouteUser" returnType="void" visibility="public" isSynchronized="true">
+          <Argument type="String" name="routeUser"/>
+        </Method>
+        <Method name="getModo" returnType="int" visibility="public"/>
+        <Method name="setModo" returnType="void" visibility="public" isSynchronized="true">
+          <Argument type="int" name="Modo"/>
+        </Method>
+      </Methods>
+    </Class>
+    <Class name="Server" package="server" visibility="public" xPosition="527.0" yPosition="20.0">
+      <Fields>
+        <Field name="serverPort" type="int" visibility="protected"/>
+        <Field name="serverSocket" type="ServerSocket" visibility="protected"/>
+        <Field name="isStopped" type="boolean" visibility="protected"/>
+        <Field name="runningThread" type="Thread" visibility="protected"/>
+        <Field name="connections" type="LinkedList&lt;ClientConnection&gt;" visibility="protected"/>
+        <Field name="master" type="Master" visibility="protected"/>
+      </Fields>
+      <Constructors>
+        <Constructor visibility="public">
+          <Argument type="int" name="port"/>
+        </Constructor>
+      </Constructors>
+      <Methods>
+        <Method name="run" returnType="void" visibility="public"/>
+        <Method name="isStopped" returnType="boolean" visibility="private" isSynchronized="true"/>
+        <Method name="stop" returnType="void" visibility="public" isSynchronized="true"/>
+        <Method name="openServerSocket" returnType="void" visibility="private"/>
+        <Method name="disconnect" returnType="void" visibility="public" isSynchronized="true">
+          <Argument type="ClientConnection" name="client"/>
+        </Method>
+        <Method name="broadcast" returnType="void" visibility="public">
+          <Argument type="ClientConnection" name="activeClient"/>
+          <Argument type="String" name="user"/>
+          <Argument type="String" name="message"/>
+        </Method>
+      </Methods>
+    </Class>
+  </ClassDiagramComponents>
+  <ClassDiagramRelations>
+    <HasRelation name="client" source="client.forms.ChatForm" target="client.Client" type="Composition" sourceCardinality="0..1" targetCardinality="1..1"/>
+    <HasRelation name="connections" source="server.Server" target="server.ClientConnection" type="Aggregation" sourceCardinality="1..1" targetCardinality="0..*" collectionType="LinkedList&lt;ClientConnection&gt;"/>
+    <HasRelation name="server" source="server.ClientConnection" target="server.Server" type="Composition" sourceCardinality="0..1" targetCardinality="1..1"/>
+    <HasRelation name="master" source="server.Server" target="server.controllers.Master" type="Composition" sourceCardinality="0..1" targetCardinality="1..1"/>
+    <HasRelation name="client" source="client.forms.Login" target="client.Client" type="Composition" sourceCardinality="0..1" targetCardinality="1..1"/>
+  </ClassDiagramRelations>
+</ClassDiagram>
