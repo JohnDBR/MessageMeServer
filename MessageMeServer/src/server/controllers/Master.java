@@ -11,7 +11,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import javax.swing.JOptionPane;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -20,25 +21,98 @@ import javax.swing.JOptionPane;
 public class Master {
 
     private String routeUser;
+    private String routeFriends;
+    private String routeFriendRequests;
     private int Modo;
 
     private ArrayList<String[]> userFile;
+    private Map<String, Boolean> friends;
 
     public Master() {
         routeUser = "./database/Users.txt";
+        routeFriends = "./database/Friends.txt";
+        routeFriendRequests = "./database/FriendRequests.txt";
         loadData();
+        
+        encryptDecryptFile(routeFriendRequests, true);
+        encryptDecryptFile(routeFriends, true);
+        String s = "2";
     }
 
+    //file methods
     private void loadData() {
-        if (checkFile(getRouteUser())) {
+        if (checkFile(routeUser) && checkFile(routeFriends) && checkFile(routeFriendRequests)) {
             setModo(2);
             userFile = getUserFile();
             String s = "";
+
+            loadFriendsFiles();
         } else {
             System.out.println("Error, database corrupted!");
         }
     }
 
+    private void loadFriendsFiles() {
+        friends = new HashMap<String, Boolean>();
+        getFriendsFile(false);
+        getFriendsFile(true);
+    }
+
+    public synchronized boolean checkFile(String route) {
+        File file = new File(route);
+        return file.exists();
+    }
+
+    public void encryptDecryptFile(String route, boolean encript) {
+        try {
+            File f = new File(route);
+            File mod = new File("./database/mod.txt");
+            mod.createNewFile();
+
+            FileReader fr = new FileReader(f);
+            BufferedReader br = new BufferedReader(fr);
+
+            FileWriter fw = new FileWriter(mod);
+            PrintWriter pr = new PrintWriter(fw);
+
+            if (encript) {
+                setModo(1);
+            } else {
+                setModo(2);
+            }
+
+            String linea;
+            String linea2;
+            while ((linea = br.readLine()) != null) {
+                String[] fields = linea.split("\\|");
+
+                if (encript) {
+                    linea2 = Morse(Rotk(fields[0])) + "|" + Morse(Rotk(fields[1])) + "|" + Morse(Rotk(fields[2])) + "|";
+                } else {
+                    linea2 = Rotk(Morse(fields[0])) + "|" + Rotk(Morse(fields[1])) + "|" + Rotk(Morse(fields[2])) + "|";
+                }
+
+                pr.println(linea2);
+            }
+
+            pr.close();
+            fw.close();
+            br.close();
+            fr.close();
+
+            boolean delete;
+            boolean rename;
+            do {
+                delete = f.delete();
+                rename = mod.renameTo(f);
+                System.out.println(delete + " " + rename);
+            } while (!(delete && rename));
+        } catch (Exception ex) {
+            System.out.println("Error en base de datos");
+        }
+    }
+
+    //user methods
     public synchronized boolean authenticate(String user, String password) {
         String level;
         for (String[] userOfFile : userFile) {
@@ -55,11 +129,6 @@ public class Master {
             }
         }
         return false;
-    }
-
-    public synchronized boolean checkFile(String route) {
-        File file = new File(route);
-        return file.exists();
     }
 
     private ArrayList<String[]> getUserFile() { //YOU CAN READ THE FILE ONCE AND SAVE IT ON AN ARRAYLIST AND STOP OPENNING AND CLOSING THE FILE AGAIN AND AGAIN... BRUHH!
@@ -226,6 +295,222 @@ public class Master {
         return success;
     }
 
+    //friends methods
+    private void getFriendsFile(boolean request) {
+
+        try {
+            File f;
+            if (request) {
+                f = new File(routeFriendRequests);
+            } else {
+                f = new File(routeFriends);
+            }
+
+            FileReader fr = new FileReader(f);
+            BufferedReader br = new BufferedReader(fr);
+
+            String line;
+            br.readLine();
+            while ((line = br.readLine()) != null) {
+                String[] fields = line.split("\\|");
+                for (int i = 0; i < fields.length; i++) {
+                    String s = Rotk(Morse(fields[i]));
+                    fields[i] = s;
+                    //System.out.print(fields[i] + " ");
+                }
+                //System.out.println("");
+                friends.put(fields[0] + "-" + fields[1], Boolean.TRUE);
+            }
+
+            br.close();
+            fr.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized int friendOrRequestProcessor(String user, String user1, boolean action) {
+        boolean bool;
+        int o = 0; //Problem or invalid Request!
+        if (friends.containsKey(user + "-" + user1)) {
+            bool = friends.get(user + "-" + user1);
+            if (!bool) {
+                if (action) {
+                    friends.replace(user + "-" + user1, Boolean.TRUE);
+                    if (addToFriendFile(user, user1, false) && eraseToFriendFile(user, user1, true)) {
+                        o = 1; //Friend request accepted!
+                    } else {
+                        loadFriendsFiles();
+                    }
+                } else {
+                    friends.remove(user + "-" + user1);
+                    if (eraseToFriendFile(user, user1, false)) {
+                        o = 2;//Friend deleted!
+                    } else {
+                        loadFriendsFiles();
+                    }
+                }
+            } else if (action) {
+                o = 3; //The users are friends!  
+            } else {
+                friends.remove(user + "-" + user1);
+                if (eraseToFriendFile(user, user1, true)) {
+                    o = 4;//Friend request denied!
+                } else {
+                    loadFriendsFiles();
+                }
+            }
+        } else if (friends.containsKey(user1 + "-" + user)) {
+            bool = friends.get(user1 + "-" + user);
+            if (!bool) {
+                if (action) {
+                    friends.replace(user1 + "-" + user, Boolean.TRUE);
+                    if (addToFriendFile(user1, user, false) && eraseToFriendFile(user1, user, true)) {
+                        o = 1; //Friend request accepted!
+                    } else {
+                        loadFriendsFiles();
+                    }
+                } else {
+                    friends.remove(user1 + "-" + user);
+                    if (eraseToFriendFile(user1, user, false)) {
+                        o = 2;//Friend deleted!
+                    } else {
+                        loadFriendsFiles();
+                    }
+                }
+            } else if (action) {
+                o = 3; //The users are friends!  
+            } else {
+                friends.remove(user1 + "-" + user);
+                if (eraseToFriendFile(user1, user, true)) {
+                    o = 4;//Friend request denied!
+                } else {
+                    loadFriendsFiles();
+                }
+            }
+        } else if (action) {
+            friends.put(user + "-" + user1, Boolean.FALSE);
+            if (addToFriendFile(user, user1, true)) {
+                o = 5; //Request successfully created!   
+            }
+        }
+
+        if (o == 0) {
+            loadFriendsFiles();
+        }
+
+        return o;
+    }
+
+    private boolean addToFriendFile(String user, String user1, boolean request) {
+        try {
+            int sw = 0;
+            File f;
+            if (request) {
+                f = new File(routeFriendRequests);
+            } else {
+                f = new File(routeFriends);
+            }
+            File mod = new File("./database/mod.txt");
+            mod.createNewFile();
+
+            FileReader fr = new FileReader(f);
+            BufferedReader br = new BufferedReader(fr);
+
+            FileWriter fw = new FileWriter(mod);
+            PrintWriter pr = new PrintWriter(fw);
+
+            String linea;
+            String linea2 = Morse(Rotk(user)) + "|" + Morse(Rotk(user1)) + "|";
+            while ((linea = br.readLine()) != null) {
+                pr.println(linea);
+                String[] fields = linea.split("\\|");
+                if ((fields[0].equals(user1) || fields[1].equals(user1)) && (fields[0].equals(user) || fields[1].equals(user))) {
+                    sw = 1;
+                }
+            }
+            if (sw == 0) {
+                pr.println(linea2);
+            }
+
+            pr.close();
+            fw.close();
+            br.close();
+            fr.close();
+
+            /*
+            boolean delete = f.delete();
+            boolean rename = mod.renameTo(f);
+            System.out.println(delete + " " + rename);
+             */
+            boolean delete;
+            boolean rename;
+            do {
+                delete = f.delete();
+                rename = mod.renameTo(f);
+                System.out.println(delete + " " + rename);
+            } while (!(delete && rename));
+            if (sw == 0) {
+                return true;
+            }
+        } catch (Exception ex) {
+            System.out.println("Error en base de datos");
+        }
+        return false;
+    }
+
+    private boolean eraseToFriendFile(String user, String user1, boolean request) {
+        boolean success = false;
+        try {
+            File f;
+            int sw = 0;
+            if (request) {
+                f = new File(routeFriendRequests);
+            } else {
+                f = new File(routeFriends);
+            }
+            File mod = new File("./database/mod.txt");
+            mod.createNewFile();
+
+            FileReader fr = new FileReader(f);
+            BufferedReader br = new BufferedReader(fr);
+
+            FileWriter fw = new FileWriter(mod);
+            PrintWriter pr = new PrintWriter(fw);
+
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                String[] fields = linea.split("\\|");
+                if (!((fields[0].equals(user1) || fields[1].equals(user1)) && (fields[0].equals(user) || fields[1].equals(user)))) {
+                    pr.println(linea);
+                } else {
+                    sw = 1;
+                }
+            }
+            if (sw == 1) {
+                success = true;
+            }
+
+            pr.close();
+            fw.close();
+            br.close();
+            fr.close();
+
+            boolean delete;
+            boolean rename;
+            do {
+                delete = f.delete();
+                rename = mod.renameTo(f);
+                System.out.println(delete + " " + rename);
+            } while (!(delete && rename));
+        } catch (Exception ex) {
+            System.out.println("Error en base de datos");
+        }
+        return success;
+    }
+
+    //control methods
     public String Rotk(String s) { //Sub-rutina para Encriptar/Desencriptar segun el modo 
         String s2 = "";
         int K = 200;
@@ -457,6 +742,22 @@ public class Master {
 
     public synchronized void setRouteUser(String routeUser) {
         this.routeUser = routeUser;
+    }
+
+    public String getRouteFriends() {
+        return routeFriends;
+    }
+
+    public synchronized void setRouteFriends(String routeFriends) {
+        this.routeFriends = routeFriends;
+    }
+
+    public String getRouteFriendRequests() {
+        return routeFriendRequests;
+    }
+
+    public synchronized void setRouteFriendRequests(String routeFriendRequests) {
+        this.routeFriendRequests = routeFriendRequests;
     }
 
     public int getModo() {
