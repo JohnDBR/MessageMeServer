@@ -86,10 +86,10 @@ public class Master {
             while ((linea = br.readLine()) != null) {
                 String[] fields = linea.split("\\|");
 
-                if (encript) {
-                    linea2 = Morse(Rotk(fields[0])) + "|" + Morse(Rotk(fields[1])) + "|" + Morse(Rotk(fields[2])) + "|";
+                if (encript) { //For all types of files please!!!
+                    linea2 = Morse(Rotk(fields[0])) + "|" + Morse(Rotk(fields[1])) + "|";
                 } else {
-                    linea2 = Rotk(Morse(fields[0])) + "|" + Rotk(Morse(fields[1])) + "|" + Rotk(Morse(fields[2])) + "|";
+                    linea2 = Rotk(Morse(fields[0])) + "|" + Rotk(Morse(fields[1])) + "|";
                 }
 
                 pr.println(linea2);

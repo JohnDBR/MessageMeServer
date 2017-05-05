@@ -55,35 +55,70 @@ public class ClientConnection extends Thread {
 
     public void readMessageOfClient(String message) {
         String[] fields = message.split("-");
-        if (fields[0].equals("Login")) {
-            try {
-                if (server.master.authenticate(fields[1], fields[2])) {
+        int result;
+        switch (fields[0]) {
+            case "Login":
+                try {
+                    if (server.master.authenticate(fields[1], fields[2])) {
+                        user = fields[1];
+                        sendMessageToClient("Login Successfully");
+                    } else {
+                        sendMessageToClient("Login Unsuccessfully");
+                    }
+                } catch (Exception e) {
+                    System.out.println("Server busy, wait");
+                }   break;
+            case "SignUp":
+                result = server.master.addUser(fields[1], fields[2], fields[3], fields[4]);
+                if (result == 1) {
                     user = fields[1];
-                    sendMessageToClient("Login Successfully");
-                } else {
-                    sendMessageToClient("Login Unsuccessfully");
-                }
-            } catch (Exception e) {
-                System.out.println("Server busy, wait");
-            }
-        } else if (fields[0].equals("SignUp")) {
-            int result = server.master.addUser(fields[1], fields[2], fields[3], fields[4]);
-            if (result == 1) {
-                user = fields[1];
-            }
-            sendMessageToClient(result + "");
-        } else if (fields[0].equals("Close")) {
-            try {
-                server.disconnect(this);
-            } catch (Exception e) {
-                System.out.println("Server busy, wait");
-            }
-        } else if (fields[0].contains("ChatMessage")) {
-            try {
-                server.broadcast(this, fields[2], fields[1] + "-" + fields[3]);
-            } catch (Exception e) {
-                System.out.println("Server busy, wait");
-            }
+                }   sendMessageToClient(result + "");
+                break;
+            case "Close":
+                try {
+                    server.disconnect(this);
+                } catch (Exception e) {
+                    System.out.println("Server busy, wait");
+                }   break;
+            case "ChatMessage":
+                try {
+                    server.broadcast(this, fields[2], message);
+                } catch (Exception e) {
+                    System.out.println("Server busy, wait");
+                }   break;
+            case "FriendRequest":
+                try {
+                    result = server.master.friendOrRequestProcessor(fields[1], fields[2], Boolean.valueOf(fields[3]));
+                    String message1, message2;
+                    switch (result) {
+                        case 0:
+                            server.broadcast(this, fields[1], "Problem or invalid Request!");
+                            break;
+                        case 1:
+                            message1 = "NewFriend-" + fields[2];
+                            message2 = "NewFriend-" + fields[1];
+                            server.broadcast(this, fields[1], message1);
+                            server.broadcast(this, fields[2], message2);
+                            break;
+                        case 2:
+                            message1 = "DeleteFriend-" + fields[2];
+                            message2 = "DeleteFriend-" + fields[1];
+                            server.broadcast(this, fields[1], message1);
+                            server.broadcast(this, fields[2], message2);
+                            break;
+                        case 3:
+                            server.broadcast(this, fields[1], "Already friends!");
+                            break;
+                        case 5:
+                            server.broadcast(this, fields[1], "Request successfully sent");
+                            server.broadcast(this, fields[2], "FriendRequest-" + fields[1]);
+                            break;
+                    }
+                } catch (Exception e) {
+                    System.out.println("Server busy, wait");
+                }   break;
+            default:
+                break;
         }
     }
 
