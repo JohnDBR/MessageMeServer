@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  *
  * @author john
  */
-public class main {
+public class ConnectionTest {
 
     public static void main(String[] args) {
         //ChatForm cf = new ChatForm();

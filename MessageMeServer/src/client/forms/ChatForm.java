@@ -8,6 +8,8 @@ package client.forms;
 import client.Client;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -71,7 +73,7 @@ public class ChatForm extends javax.swing.JFrame {
         lUser.setText(client.getUser() + "'s Profile");
         initThreads();
 
-        table();
+        listeners();
         enableComponents(pChat, false);
         enableComponents(pFriend, true);
     }
@@ -106,7 +108,7 @@ public class ChatForm extends javax.swing.JFrame {
 
     }
 
-    private void table() {
+    private void listeners() {
         TFriendRequests.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
             @Override
@@ -164,6 +166,24 @@ public class ChatForm extends javax.swing.JFrame {
                     }
                 }
 
+            }
+        });
+
+        tMessage.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (c == '|' || c == '-') {
+                    e.consume();  // ignore event
+                }
+            }
+        });
+
+        tFriendUser.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (c == '|' || c == '-') {
+                    e.consume();  // ignore event
+                }
             }
         });
     }

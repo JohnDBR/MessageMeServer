@@ -6,6 +6,8 @@
 package client.forms;
 
 import client.Client;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -36,6 +38,37 @@ public class UserCreation extends javax.swing.JFrame {
             }
         });
         this.setVisible(true);
+
+        listeners();
+    }
+
+    private void listeners() {
+        tUser.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (c == '|' || c == '-') {
+                    e.consume();  // ignore event
+                }
+            }
+        });
+
+        tPassword.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (c == '|' || c == '-') {
+                    e.consume();  // ignore event
+                }
+            }
+        });
+
+        tPassword1.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (c == '|' || c == '-') {
+                    e.consume();  // ignore event
+                }
+            }
+        });
     }
 
     public void exitProcedure() {
