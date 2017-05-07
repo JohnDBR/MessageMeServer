@@ -8,9 +8,13 @@ package client.forms;
 import client.Client;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -22,19 +26,45 @@ import javax.swing.table.DefaultTableModel;
  */
 public class ChatForm extends javax.swing.JFrame {
 
-    Client client = null;
+    private Client client = null;
+
+    private String selectedFriend = "";
+    private LinkedList<String> chatMessages;
+
+    private boolean isStopped = false;
+    Thread incomingMessages;
 
     /**
      * Creates new form ClientFrame
      */
-    public ChatForm(Client client, String userFriends) {
+    public ChatForm(Client client, String userFriends, String chatMessages) {
         initComponents();
         this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent event) {
+                exitProcedure();
+            }
+        });
         this.setVisible(true);
 
         this.client = client;
+
         init();
         loadUserFriends(userFriends);
+        loadUserChatMessages(chatMessages);
+    }
+
+    public void exitProcedure() {
+        isStopped = true;
+        try {
+            //client.close(); //for some reason socket is rebellious...
+            client.sendMessage("Close"); //am i to tough?...
+        } catch (IOException ex) {
+            Logger.getLogger(ChatForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        this.dispose();
+        System.exit(0);
     }
 
     private void init() {
@@ -58,6 +88,19 @@ public class ChatForm extends javax.swing.JFrame {
                 }
             }
         }
+    }
+
+    private void loadUserChatMessages(String chatMessages) {
+        if (!chatMessages.equals("NONE")) {
+            System.out.println(chatMessages); //Working...!!! dont save chatMessages title in the array da...!!
+
+            String[] messages = chatMessages.split("\\|");
+            this.chatMessages = new LinkedList<>();
+            for (String message : messages) {
+                this.chatMessages.add(message);
+            }
+        }
+
     }
 
     private void table() {
@@ -109,6 +152,8 @@ public class ChatForm extends javax.swing.JFrame {
                         user = "";
                     }
                     if (!user.isEmpty()) {
+                        selectedFriend = user;
+                        lFriend.setText("User - " + user);
                         //Later....!!!!! (Charge the conversation da...!)
                     }
                 }
@@ -128,9 +173,9 @@ public class ChatForm extends javax.swing.JFrame {
     }
 
     private void initThreads() {
-        Thread incomingMessages = new Thread(() -> {
+        incomingMessages = new Thread(() -> {
             String s;
-            while (true) {
+            while (!isStopped) {
                 if (client != null) {
                     try {
                         s = client.receiveMessage();
@@ -215,6 +260,10 @@ public class ChatForm extends javax.swing.JFrame {
         taMessages = new javax.swing.JTextArea();
         bSend = new javax.swing.JButton();
         lFriend = new javax.swing.JLabel();
+        bDeleteFriend = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        tFriendUser = new javax.swing.JTextField();
+        bAddFriend = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("MESSAGE-ME");
@@ -316,6 +365,13 @@ public class ChatForm extends javax.swing.JFrame {
 
         lFriend.setText("User - ");
 
+        bDeleteFriend.setText("Eliminar Amigo");
+        bDeleteFriend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bDeleteFriendActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout pChatLayout = new javax.swing.GroupLayout(pChat);
         pChat.setLayout(pChatLayout);
         pChatLayout.setHorizontalGroup(
@@ -328,17 +384,21 @@ public class ChatForm extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(bSend))
                     .addGroup(pChatLayout.createSequentialGroup()
-                        .addGroup(pChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 362, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lFriend, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 13, Short.MAX_VALUE)))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 362, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 13, Short.MAX_VALUE))
+                    .addGroup(pChatLayout.createSequentialGroup()
+                        .addComponent(lFriend, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(bDeleteFriend)))
                 .addContainerGap())
         );
         pChatLayout.setVerticalGroup(
             pChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pChatLayout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(lFriend)
+                .addGroup(pChatLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lFriend)
+                    .addComponent(bDeleteFriend))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -348,32 +408,56 @@ public class ChatForm extends javax.swing.JFrame {
                 .addGap(18, 18, 18))
         );
 
+        jLabel1.setText("Usuario: ");
+
+        bAddFriend.setText("Agregar Amigo");
+        bAddFriend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bAddFriendActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(24, 24, 24)
-                .addComponent(lUser)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(14, 14, 14)
-                .addComponent(pFriend, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pChat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(14, 14, 14)
+                        .addComponent(pFriend, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(24, 24, 24)
+                        .addComponent(lUser)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(pChat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(tFriendUser, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(bAddFriend)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addComponent(lUser)
+                .addGap(11, 11, 11)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lUser)
+                    .addComponent(jLabel1)
+                    .addComponent(tFriendUser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bAddFriend))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pFriend, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(pChat, javax.swing.GroupLayout.DEFAULT_SIZE, 307, Short.MAX_VALUE))
+                    .addComponent(pChat, javax.swing.GroupLayout.DEFAULT_SIZE, 314, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -396,10 +480,39 @@ public class ChatForm extends javax.swing.JFrame {
 
     }//GEN-LAST:event_bSendActionPerformed
 
+    private void bAddFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bAddFriendActionPerformed
+
+        if (client != null && !tFriendUser.getText().equals("")) {
+            try {
+                String message = "FriendRequest-" + client.getUser() + "-" + tFriendUser.getText() + "-true";
+                client.sendMessage(message);
+                tFriendUser.setText("");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Error al enviar!");
+            }
+        }
+    }//GEN-LAST:event_bAddFriendActionPerformed
+
+    private void bDeleteFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bDeleteFriendActionPerformed
+
+        if (client != null && !selectedFriend.equals("")) {
+            try {
+                String message = "FriendRequest-" + client.getUser() + "-" + selectedFriend + "-false";
+                client.sendMessage(message);
+                tFriendUser.setText("");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Error al enviar!");
+            }
+        }
+    }//GEN-LAST:event_bDeleteFriendActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTable TFriendRequests;
     private javax.swing.JTable TFriends;
+    private javax.swing.JButton bAddFriend;
+    private javax.swing.JButton bDeleteFriend;
     private javax.swing.JButton bSend;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
@@ -407,6 +520,7 @@ public class ChatForm extends javax.swing.JFrame {
     private javax.swing.JLabel lUser;
     private javax.swing.JPanel pChat;
     private javax.swing.JPanel pFriend;
+    private javax.swing.JTextField tFriendUser;
     private javax.swing.JTextField tMessage;
     public static javax.swing.JTextArea taMessages;
     // End of variables declaration//GEN-END:variables

@@ -66,7 +66,7 @@ public class Login extends javax.swing.JFrame {
             } catch (IOException ex) {
                 System.out.println("Problem receiving messages");
             }
-        } while (!answer.equals("Login Successfully") && !answer.equals("Login Unsuccessfully"));
+        } while (answer.equals(""));
         if (answer.equals("Login Successfully")) {
             String userFriends = "";
             do {
@@ -76,11 +76,21 @@ public class Login extends javax.swing.JFrame {
                     System.out.println("Problem receiving messages");
                 }
             } while (userFriends.equals(""));
+            String chatMessages = "";
+            do {
+                try {
+                    chatMessages = client.receiveMessage();
+                } catch (IOException ex) {
+                    System.out.println("Problem receiving messages");
+                }
+            } while (chatMessages.equals(""));
             client.setUser(user);
-            new ChatForm(client, userFriends);
+            new ChatForm(client, userFriends, chatMessages);
             this.dispose();
-        } else {
+        } else if (answer.equals("Login Unsuccessfully")) {
             JOptionPane.showMessageDialog(null, "Username o Password erroneos, por favor verifique");
+        } else {
+            JOptionPane.showMessageDialog(null, "Sesion iniciada en otro computador");
         }
     }
 

@@ -59,12 +59,17 @@ public class ClientConnection extends Thread {
         switch (fields[0]) {
             case "Login":
                 try {
-                    if (server.master.authenticate(fields[1], fields[2])) {
-                        user = fields[1];
-                        sendMessageToClient("Login Successfully");
-                        sendMessageToClient(server.master.getUserFriends(user));
+                    if (!server.userConnected(fields[1])) {
+                        if (server.master.authenticate(fields[1], fields[2])) {
+                            user = fields[1];
+                            sendMessageToClient("Login Successfully");
+                            sendMessageToClient(server.master.getUserFriends(user));
+                            sendMessageToClient(server.master.getUserMessages(user));
+                        } else {
+                            sendMessageToClient("Login Unsuccessfully");
+                        }
                     } else {
-                        sendMessageToClient("Login Unsuccessfully");
+                        sendMessageToClient("Already login in another computer");
                     }
                 } catch (Exception e) {
                     System.out.println("Server busy, wait");
@@ -87,6 +92,7 @@ public class ClientConnection extends Thread {
             case "ChatMessage":
                 try {
                     server.broadcast(this, fields[2], message);
+                    server.master.addToMessageFile(fields[1], fields[2], fields[3]);
                 } catch (Exception e) {
                     System.out.println("Server busy, wait");
                 }

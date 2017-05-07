@@ -102,4 +102,13 @@ public class Server implements Runnable {
         }
     }
 
+    public boolean userConnected(String user) {
+        for (ClientConnection client : connections) {
+            if (user.equalsIgnoreCase(client.user)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

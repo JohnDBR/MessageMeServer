@@ -37,9 +37,8 @@ public class Master {
         routeMessages = "./database/Messages.txt";
         loadData();
 
-        //encryptDecryptFile(routeFriendRequests, true);
+        //encryptDecryptFile(routeMessages, false);
         //encryptDecryptFile(routeFriends, true);
-        //System.out.println(getUserFriends("tester02"));
     }
 
     //file methods
@@ -85,14 +84,18 @@ public class Master {
             }
 
             String linea;
-            String linea2;
+            String linea2 = "";
             while ((linea = br.readLine()) != null) {
                 String[] fields = linea.split("\\|");
 
                 if (encript) { //For all types of files please!!!
-                    linea2 = Morse(Rotk(fields[0])) + "|" + Morse(Rotk(fields[1])) + "|";
+                    for (String field : fields) {
+                        linea2 = linea2.concat(Morse(Rotk(field)) + "|");
+                    }
                 } else {
-                    linea2 = Rotk(Morse(fields[0])) + "|" + Rotk(Morse(fields[1])) + "|";
+                    for (String field : fields) {
+                        linea2 = linea2.concat(Rotk(Morse(field)) + "|");
+                    }
                 }
 
                 pr.println(linea2);
@@ -550,6 +553,73 @@ public class Master {
             System.out.println("Error en base de datos");
         }
         return success;
+    }
+
+    //message methods
+    public synchronized String getUserMessages(String user) {
+        String chatMessages = "ChatMessages|";
+        try {
+            File f = new File(routeMessages);
+
+            FileReader fr = new FileReader(f);
+            BufferedReader br = new BufferedReader(fr);
+
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                String[] fields = linea.split("\\|");
+                if (fields[0].equalsIgnoreCase(user) || fields[1].equalsIgnoreCase(user)) {
+                    chatMessages = chatMessages.concat(fields[0] + "-" + fields[1] + "-" + fields[2] + "|");
+                }
+            }
+
+            br.close();
+            fr.close();
+        } catch (Exception ex) {
+            System.out.println("Error en base de datos");
+        }
+        if (chatMessages.equals("ChatMessages|")) {
+            chatMessages = "NONE";
+        }
+        return chatMessages;
+    }
+
+    public synchronized boolean addToMessageFile(String user, String user1, String message) { //Should be public?
+        try {
+            File f = new File(routeMessages);
+
+            File mod = new File("./database/mod.txt");
+            mod.createNewFile();
+
+            FileReader fr = new FileReader(f);
+            BufferedReader br = new BufferedReader(fr);
+
+            FileWriter fw = new FileWriter(mod);
+            PrintWriter pr = new PrintWriter(fw);
+
+            String linea;
+            String linea2 = user + "|" + user1 + "|" + message + "|";
+            while ((linea = br.readLine()) != null) {
+                pr.println(linea);
+            }
+            pr.println(linea2);
+
+            pr.close();
+            fw.close();
+            br.close();
+            fr.close();
+
+            boolean delete;
+            boolean rename;
+            do {
+                delete = f.delete();
+                rename = mod.renameTo(f);
+                //System.out.println(delete + " " + rename);
+            } while (!(delete && rename));
+            return true;
+        } catch (Exception ex) {
+            System.out.println("Error en base de datos");
+        }
+        return false;
     }
 
     //control methods
