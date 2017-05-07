@@ -72,8 +72,8 @@ public class ChatForm extends javax.swing.JFrame {
         initThreads();
 
         table();
-        //enableComponents(pChat, false);
-        //enableComponents(pFriend, true);
+        enableComponents(pChat, false);
+        enableComponents(pFriend, true);
     }
 
     private void loadUserFriends(String userFriends) {
@@ -92,13 +92,16 @@ public class ChatForm extends javax.swing.JFrame {
 
     private void loadUserChatMessages(String chatMessages) {
         if (!chatMessages.equals("NONE")) {
-            System.out.println(chatMessages); //Working...!!! dont save chatMessages title in the array da...!!
+            System.out.println(chatMessages);
 
             String[] messages = chatMessages.split("\\|");
             this.chatMessages = new LinkedList<>();
-            for (String message : messages) {
-                this.chatMessages.add(message);
+            for (int i = 1; i < messages.length; i++) {
+                this.chatMessages.add(messages[i]);
             }
+            //for (String message : messages) { //dont save chatMessages title in the array da...!!
+            //    this.chatMessages.add(message);
+            //}
         }
 
     }
@@ -152,14 +155,27 @@ public class ChatForm extends javax.swing.JFrame {
                         user = "";
                     }
                     if (!user.isEmpty()) {
+                        if (selectedFriend.equals("")) {
+                            enableComponents(pChat, true);
+                        }
                         selectedFriend = user;
                         lFriend.setText("User - " + user);
-                        //Later....!!!!! (Charge the conversation da...!)
+                        loadConversation(user);
                     }
                 }
 
             }
         });
+    }
+
+    private void loadConversation(String user) {
+        taMessages.setText("");
+        for (String chatMessage : chatMessages) {
+            String[] fields = chatMessage.split("\\-");
+            if (fields[0].equalsIgnoreCase(user) || fields[1].equalsIgnoreCase(user)) {
+                taMessages.setText(taMessages.getText() + "\n" + fields[0] + "-" + fields[2]);
+            }
+        }
     }
 
     private void enableComponents(Container container, boolean enable) {
@@ -197,7 +213,12 @@ public class ChatForm extends javax.swing.JFrame {
         } else {
             switch (fields[0]) {
                 case "ChatMessage":
-                    taMessages.setText(taMessages.getText() + "\n" + fields[1] + "-" + fields[3]);
+                    chatMessages.add(fields[1] + "-" + fields[2] + "-" + fields[3]);
+                    if (selectedFriend.equalsIgnoreCase(fields[1])) {
+                        taMessages.setText(taMessages.getText() + "\n" + fields[1] + "-" + fields[3]);
+                    } else {
+                        //Notification idea!...
+                    }
                     break;
                 case "FriendRequest":
                     addToTable(fields[1], true);
@@ -466,12 +487,14 @@ public class ChatForm extends javax.swing.JFrame {
 
     private void bSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bSendActionPerformed
 
-        if (client != null && !tMessage.getText().equals("")) {
+        if (client != null && !tMessage.getText().equals("") && !selectedFriend.equals("")) {
             try {
-                //String message = "ChatMessage-" + client.getUser() + "-" + tMessage.getText();
-                String message = tMessage.getText();
-                client.sendMessage(message);
-                taMessages.setText(taMessages.getText() + "\n" + tMessage.getText());
+                String message = client.getUser().toUpperCase() + "-" + selectedFriend.toUpperCase() + "-" + tMessage.getText();
+                String request = "ChatMessage-" + message;
+                //String message = tMessage.getText();
+                client.sendMessage(request);
+                chatMessages.add(message);
+                taMessages.setText(taMessages.getText() + "\n" + client.getUser().toUpperCase() + "-" + tMessage.getText());
                 tMessage.setText("");
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Error al enviar!");

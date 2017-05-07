@@ -1,4 +1,4 @@
 USER1|USER2|MESSAGES|
-John|tester01|Hola|
-tester02|tester01|Supp?|
-tester01|John|Como estas?|
+JOHN|TESTER01|Hola|
+TESTER02|TESTER01|Supp?|
+TESTER01|JOHN|Como estas?|

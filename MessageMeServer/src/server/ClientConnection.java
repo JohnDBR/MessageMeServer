@@ -92,7 +92,7 @@ public class ClientConnection extends Thread {
             case "ChatMessage":
                 try {
                     server.broadcast(this, fields[2], message);
-                    server.master.addToMessageFile(fields[1], fields[2], fields[3]);
+                    server.master.addToMessageFile(fields[1].toUpperCase(), fields[2].toUpperCase(), fields[3]);
                 } catch (Exception e) {
                     System.out.println("Server busy, wait");
                 }
