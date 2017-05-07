@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -23,6 +24,7 @@ public class Master {
     private String routeUser;
     private String routeFriends;
     private String routeFriendRequests;
+    private String routeMessages;
     private int Modo;
 
     private ArrayList<String[]> userFile;
@@ -32,11 +34,12 @@ public class Master {
         routeUser = "./database/Users.txt";
         routeFriends = "./database/Friends.txt";
         routeFriendRequests = "./database/FriendRequests.txt";
+        routeMessages = "./database/Messages.txt";
         loadData();
-        
-        encryptDecryptFile(routeFriendRequests, true);
-        encryptDecryptFile(routeFriends, true);
-        String s = "2";
+
+        //encryptDecryptFile(routeFriendRequests, true);
+        //encryptDecryptFile(routeFriends, true);
+        //System.out.println(getUserFriends("tester02"));
     }
 
     //file methods
@@ -166,7 +169,6 @@ public class Master {
     public synchronized int addUser(String user, String password, String password1, String level) {
         if (validateWyN(user) && validateWyN(password) && validateWyN(password1) && validateNumber(level)) {
             if (password.equals(password1)) {
-                setModo(1);
                 if (addToUserFile(user, password, level)) {
                     String[] fields = {user, password, level};
                     userFile.add(fields);
@@ -197,6 +199,9 @@ public class Master {
 
     private boolean addToUserFile(String user, String password, String level) {
         try {
+
+            setModo(1);
+
             int sw = 0;
             File f = new File(getRouteUser());
             File mod = new File("./database/mod.txt");
@@ -237,7 +242,7 @@ public class Master {
             do {
                 delete = f.delete();
                 rename = mod.renameTo(f);
-                System.out.println(delete + " " + rename);
+                //System.out.println(delete + " " + rename);
             } while (!(delete && rename));
             if (sw == 0) {
                 return true;
@@ -251,6 +256,9 @@ public class Master {
     private int eraseToUserFile(String user) {
         int success = 0;
         try {
+
+            setModo(1);
+
             int sw = 0;
             File f = new File(getRouteUser());
             File mod = new File("./database/mod.txt");
@@ -266,7 +274,7 @@ public class Master {
             String user1 = Morse(Rotk(user));
             while ((linea = br.readLine()) != null) {
                 String[] fields = linea.split("\\|");
-                if (!fields[0].contains(user1)) {
+                if (!fields[0].equals(user1)) {
                     pr.println(linea);
                 } else {
                     sw = 1;
@@ -286,7 +294,7 @@ public class Master {
             do {
                 delete = f.delete();
                 rename = mod.renameTo(f);
-                System.out.println(delete + " " + rename);
+                //System.out.println(delete + " " + rename);
             } while (!(delete && rename));
         } catch (Exception ex) {
             success = 2;
@@ -319,7 +327,11 @@ public class Master {
                     //System.out.print(fields[i] + " ");
                 }
                 //System.out.println("");
-                friends.put(fields[0] + "-" + fields[1], Boolean.TRUE);
+                if (request) {
+                    friends.put(fields[0] + "-" + fields[1], Boolean.FALSE);
+                } else {
+                    friends.put(fields[0] + "-" + fields[1], Boolean.TRUE);
+                }
             }
 
             br.close();
@@ -328,6 +340,27 @@ public class Master {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public synchronized String getUserFriends(String user) {
+        String friendsMessage = "Friends|";
+        for (Map.Entry<String, Boolean> entry : friends.entrySet()) {
+            String key = entry.getKey();
+            boolean value = entry.getValue();
+            if (key.contains(user.toUpperCase())) {
+                String[] users = key.split("\\-");
+                if (users[0].equalsIgnoreCase(user) && value) {
+                    friendsMessage = friendsMessage.concat(users[1] + "-" + Boolean.toString(value) + "|");
+                } else if (users[1].equalsIgnoreCase(user)) {
+                    friendsMessage = friendsMessage.concat(users[0] + "-" + Boolean.toString(value) + "|");
+                }
+            }
+            //System.out.println(key + "-" + value);
+        }
+        if (friendsMessage.equals("Friends|")) {
+            friendsMessage = "NONE";
+        }
+        return friendsMessage;
     }
 
     public synchronized int friendOrRequestProcessor(String user, String user1, boolean action) {
@@ -345,8 +378,8 @@ public class Master {
                     }
                 } else {
                     friends.remove(user + "-" + user1);
-                    if (eraseToFriendFile(user, user1, false)) {
-                        o = 2;//Friend deleted!
+                    if (eraseToFriendFile(user, user1, true)) {
+                        o = 2; //Friend request denied!
                     } else {
                         loadFriendsFiles();
                     }
@@ -355,8 +388,8 @@ public class Master {
                 o = 3; //The users are friends!  
             } else {
                 friends.remove(user + "-" + user1);
-                if (eraseToFriendFile(user, user1, true)) {
-                    o = 4;//Friend request denied!
+                if (eraseToFriendFile(user, user1, false)) {
+                    o = 4; //Friend deleted!
                 } else {
                     loadFriendsFiles();
                 }
@@ -373,8 +406,8 @@ public class Master {
                     }
                 } else {
                     friends.remove(user1 + "-" + user);
-                    if (eraseToFriendFile(user1, user, false)) {
-                        o = 2;//Friend deleted!
+                    if (eraseToFriendFile(user1, user, true)) {
+                        o = 2; //Friend request denied!
                     } else {
                         loadFriendsFiles();
                     }
@@ -383,8 +416,8 @@ public class Master {
                 o = 3; //The users are friends!  
             } else {
                 friends.remove(user1 + "-" + user);
-                if (eraseToFriendFile(user1, user, true)) {
-                    o = 4;//Friend request denied!
+                if (eraseToFriendFile(user1, user, false)) {
+                    o = 4; //Friend deleted!
                 } else {
                     loadFriendsFiles();
                 }
@@ -405,6 +438,9 @@ public class Master {
 
     private boolean addToFriendFile(String user, String user1, boolean request) {
         try {
+
+            setModo(1); //encript
+
             int sw = 0;
             File f;
             if (request) {
@@ -449,7 +485,7 @@ public class Master {
             do {
                 delete = f.delete();
                 rename = mod.renameTo(f);
-                System.out.println(delete + " " + rename);
+                //System.out.println(delete + " " + rename);
             } while (!(delete && rename));
             if (sw == 0) {
                 return true;
@@ -463,6 +499,9 @@ public class Master {
     private boolean eraseToFriendFile(String user, String user1, boolean request) {
         boolean success = false;
         try {
+
+            setModo(2); //drecrypt
+
             File f;
             int sw = 0;
             if (request) {
@@ -482,7 +521,10 @@ public class Master {
             String linea;
             while ((linea = br.readLine()) != null) {
                 String[] fields = linea.split("\\|");
-                if (!((fields[0].equals(user1) || fields[1].equals(user1)) && (fields[0].equals(user) || fields[1].equals(user)))) {
+                for (int i = 0; i < fields.length; i++) {
+                    fields[i] = Rotk(Morse(fields[i]));
+                }
+                if (!((fields[0].equalsIgnoreCase(user1) || fields[1].equalsIgnoreCase(user1)) && (fields[0].equalsIgnoreCase(user) || fields[1].equalsIgnoreCase(user)))) {
                     pr.println(linea);
                 } else {
                     sw = 1;
@@ -502,7 +544,7 @@ public class Master {
             do {
                 delete = f.delete();
                 rename = mod.renameTo(f);
-                System.out.println(delete + " " + rename);
+                //System.out.println(delete + " " + rename);
             } while (!(delete && rename));
         } catch (Exception ex) {
             System.out.println("Error en base de datos");

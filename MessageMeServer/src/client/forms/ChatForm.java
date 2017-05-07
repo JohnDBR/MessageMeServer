@@ -27,13 +27,14 @@ public class ChatForm extends javax.swing.JFrame {
     /**
      * Creates new form ClientFrame
      */
-    public ChatForm(Client client) {
+    public ChatForm(Client client, String userFriends) {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setVisible(true);
 
         this.client = client;
         init();
+        loadUserFriends(userFriends);
     }
 
     private void init() {
@@ -41,8 +42,22 @@ public class ChatForm extends javax.swing.JFrame {
         initThreads();
 
         table();
-        enableComponents(pChat, false);
-        enableComponents(pFriend, true);
+        //enableComponents(pChat, false);
+        //enableComponents(pFriend, true);
+    }
+
+    private void loadUserFriends(String userFriends) {
+        if (!userFriends.equals("NONE")) {
+            String[] friends = userFriends.split("\\|");
+            for (int i = 1; i < friends.length; i++) {
+                String[] fields = friends[i].split("\\-");
+                if (Boolean.valueOf(fields[1])) {
+                    addToTable(fields[0], false);
+                } else {
+                    addToTable(fields[0], true);
+                }
+            }
+        }
     }
 
     private void table() {
@@ -61,15 +76,15 @@ public class ChatForm extends javax.swing.JFrame {
                     }
                     if (!user.isEmpty()) {
                         deleteToTable(user, true);
-                        if (JOptionPane.showConfirmDialog(null, "Are you sure?", "WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                        if (JOptionPane.showConfirmDialog(null, user + " want to be your friend!", "WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                             try {
-                                client.sendMessage("FriendRequest-" + client.getUser() + "-" + user + "-" + "true");//Send true request
+                                client.sendMessage("FriendRequest-" + client.getUser().toUpperCase() + "-" + user.toUpperCase() + "-" + "true");//Send true request
                             } catch (IOException ex) {
                                 System.out.println("Problem send the request!");
                             }
                         } else {
                             try {
-                                client.sendMessage("FriendRequest-" + client.getUser() + "-" + user + "-" + "false");//Send false request
+                                client.sendMessage("FriendRequest-" + client.getUser().toUpperCase() + "-" + user.toUpperCase() + "-" + "false");//Send false request
                             } catch (IOException ex) {
                                 System.out.println("Problem send the request!");
                             }
@@ -137,17 +152,16 @@ public class ChatForm extends javax.swing.JFrame {
         } else {
             switch (fields[0]) {
                 case "ChatMessage":
-                    taMessages.setText(taMessages.getText() + "\n" + s);
+                    taMessages.setText(taMessages.getText() + "\n" + fields[1] + "-" + fields[3]);
+                    break;
                 case "FriendRequest":
-                    addToTable(fields[0], true);
+                    addToTable(fields[1], true);
                     break;
                 case "NewFriend":
-                    addToTable(fields[0], true);
+                    addToTable(fields[1], false);
                     break;
                 case "DeleteFriend":
                     deleteToTable(fields[1], false);
-                    break;
-                default:
                     break;
             }
         }
@@ -370,7 +384,8 @@ public class ChatForm extends javax.swing.JFrame {
 
         if (client != null && !tMessage.getText().equals("")) {
             try {
-                String message = "ChatMessage-" + client.getUser() + "-" + tMessage.getText();
+                //String message = "ChatMessage-" + client.getUser() + "-" + tMessage.getText();
+                String message = tMessage.getText();
                 client.sendMessage(message);
                 taMessages.setText(taMessages.getText() + "\n" + tMessage.getText());
                 tMessage.setText("");

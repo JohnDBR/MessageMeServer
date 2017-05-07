@@ -95,7 +95,8 @@ public class Server implements Runnable {
             //if (!client.equals(activeClient)) {
             //    client.sendMessageToClient(message);
             //}
-            if (client.user.equals(user)) {
+            //if (client.user.equalsIgnoreCase(user)) {
+            if (user.equalsIgnoreCase(client.user)) {
                 client.sendMessageToClient(message);
             }
         }
