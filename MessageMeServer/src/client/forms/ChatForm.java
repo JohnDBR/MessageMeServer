@@ -93,11 +93,11 @@ public class ChatForm extends javax.swing.JFrame {
     }
 
     private void loadUserChatMessages(String chatMessages) {
+        this.chatMessages = new LinkedList<>();
         if (!chatMessages.equals("NONE")) {
             System.out.println(chatMessages);
 
             String[] messages = chatMessages.split("\\|");
-            this.chatMessages = new LinkedList<>();
             for (int i = 1; i < messages.length; i++) {
                 this.chatMessages.add(messages[i]);
             }
@@ -543,6 +543,7 @@ public class ChatForm extends javax.swing.JFrame {
                 String message = "FriendRequest-" + client.getUser() + "-" + selectedFriend + "-false";
                 client.sendMessage(message);
                 tFriendUser.setText("");
+                enableComponents(pChat, false);
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, "Error al enviar!");
             }
