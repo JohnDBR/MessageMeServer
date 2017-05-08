@@ -110,7 +110,7 @@ public class UserCreation extends javax.swing.JFrame {
             tUser.setText("");
             JOptionPane.showMessageDialog(null, "Sign up Successfully");
             client.setUser(user);
-            new ChatForm(client, "NONE", "NONE");
+            new ChatForm(client, "NONE", "NONE", "NONE");
             this.dispose();
         } else if (answer.equals("2")) {
             JOptionPane.showMessageDialog(null, "Passwords diferentes");

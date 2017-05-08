@@ -107,8 +107,16 @@ public class Login extends javax.swing.JFrame {
                     System.out.println("Problem receiving messages");
                 }
             } while (chatMessages.equals(""));
+            String onlineFriends = "";
+            do {
+                try {
+                    onlineFriends = client.receiveMessage();
+                } catch (IOException ex) {
+                    System.out.println("Problem receiving messages");
+                }
+            } while (onlineFriends.equals(""));
             client.setUser(user);
-            new ChatForm(client, userFriends, chatMessages);
+            new ChatForm(client, userFriends, chatMessages, onlineFriends);
             this.dispose();
         } else if (answer.equals("Login Unsuccessfully")) {
             JOptionPane.showMessageDialog(null, "Username o Password erroneos, por favor verifique");

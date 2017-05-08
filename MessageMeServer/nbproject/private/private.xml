@@ -3,13 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/john/Documents/NetBeansProjects/MessageMeServer/MessageMeServer/database/Friends.txt</file>
-            <file>file:/C:/Users/john/Documents/NetBeansProjects/MessageMeServer/MessageMeServer/database/Messages.txt</file>
+            <file>file:/C:/Users/john/Documents/NetBeansProjects/MessageMeServer/MessageMeServer/src/server/Server.java</file>
             <file>file:/C:/Users/john/Documents/NetBeansProjects/MessageMeServer/MessageMeServer/database/Users.txt</file>
             <file>file:/C:/Users/john/Documents/NetBeansProjects/MessageMeServer/MessageMeServer/src/client/forms/ChatForm.java</file>
             <file>file:/C:/Users/john/Documents/NetBeansProjects/MessageMeServer/MessageMeServer/src/server/controllers/Master.java</file>
             <file>file:/C:/Users/john/Documents/NetBeansProjects/MessageMeServer/MessageMeServer/src/server/ClientConnection.java</file>
-            <file>file:/C:/Users/john/Documents/NetBeansProjects/MessageMeServer/MessageMeServer/database/FriendRequests.txt</file>
+            <file>file:/C:/Users/john/Documents/NetBeansProjects/MessageMeServer/MessageMeServer/src/client/forms/Login.java</file>
         </group>
     </open-files>
 </project-private>

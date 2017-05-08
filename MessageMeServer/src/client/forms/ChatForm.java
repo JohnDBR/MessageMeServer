@@ -39,7 +39,7 @@ public class ChatForm extends javax.swing.JFrame {
     /**
      * Creates new form ClientFrame
      */
-    public ChatForm(Client client, String userFriends, String chatMessages) {
+    public ChatForm(Client client, String userFriends, String chatMessages, String onlineFriends) {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -53,7 +53,7 @@ public class ChatForm extends javax.swing.JFrame {
         this.client = client;
 
         init();
-        loadUserFriends(userFriends);
+        loadUserFriends(userFriends, onlineFriends);
         loadUserChatMessages(chatMessages);
     }
 
@@ -78,15 +78,19 @@ public class ChatForm extends javax.swing.JFrame {
         enableComponents(pFriend, true);
     }
 
-    private void loadUserFriends(String userFriends) {
+    private void loadUserFriends(String userFriends, String onlineFriends) {
         if (!userFriends.equals("NONE")) {
             String[] friends = userFriends.split("\\|");
             for (int i = 1; i < friends.length; i++) {
                 String[] fields = friends[i].split("\\-");
                 if (Boolean.valueOf(fields[1])) {
-                    addToTable(fields[0], false);
+                    if (onlineFriends.contains(fields[0])) {
+                        addUserToFriendsTable(fields[0], "Si", 0);
+                    } else {
+                        addUserToFriendsTable(fields[0], "No", 0);
+                    }
                 } else {
-                    addToTable(fields[0], true);
+                    addUserToRequesTable(fields[0]);
                 }
             }
         }
@@ -123,7 +127,7 @@ public class ChatForm extends javax.swing.JFrame {
                         user = "";
                     }
                     if (!user.isEmpty()) {
-                        deleteToTable(user, true);
+                        deleteUserToTable(user, true);
                         if (JOptionPane.showConfirmDialog(null, user + " want to be your friend!", "WARNING", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                             try {
                                 client.sendMessage("FriendRequest-" + client.getUser().toUpperCase() + "-" + user.toUpperCase() + "-" + "true");//Send true request
@@ -161,6 +165,7 @@ public class ChatForm extends javax.swing.JFrame {
                             enableComponents(pChat, true);
                         }
                         selectedFriend = user;
+                        addIncomingToTable(user, false);
                         lFriend.setText("User - " + user);
                         loadConversation(user);
                     }
@@ -237,33 +242,40 @@ public class ChatForm extends javax.swing.JFrame {
                     if (selectedFriend.equalsIgnoreCase(fields[1])) {
                         taMessages.setText(taMessages.getText() + "\n" + fields[1] + "-" + fields[3]);
                     } else {
-                        //Notification idea!...
+                        addIncomingToTable(fields[1], true);
                     }
                     break;
                 case "FriendRequest":
-                    addToTable(fields[1], true);
+                    addUserToRequesTable(fields[1]);
                     break;
                 case "NewFriend":
-                    addToTable(fields[1], false);
+                    if (Boolean.valueOf(fields[2])) {
+                        addUserToFriendsTable(fields[1], "Si", 0);
+                    } else {
+                        addUserToFriendsTable(fields[1], "No", 0);
+                    }
                     break;
                 case "DeleteFriend":
-                    deleteToTable(fields[1], false);
+                    deleteUserToTable(fields[1], false);
+                    break;
+                case "OnlineFriend":
+                    addOnlineToTable(fields[1]);
                     break;
             }
         }
     }
 
-    private void addToTable(String string, boolean request) {
-        DefaultTableModel model;
-        if (request) {
-            model = (DefaultTableModel) this.TFriendRequests.getModel();
-        } else {
-            model = (DefaultTableModel) this.TFriends.getModel();
-        }
-        model.addRow(new Object[]{string});
+    private void addUserToRequesTable(String user) {
+        DefaultTableModel model = (DefaultTableModel) this.TFriendRequests.getModel();
+        model.addRow(new Object[]{user});
     }
 
-    private void deleteToTable(String string, boolean request) {
+    private void addUserToFriendsTable(String user, String online, int incomingMessages) {
+        DefaultTableModel model = (DefaultTableModel) this.TFriends.getModel();
+        model.addRow(new Object[]{user, online, incomingMessages});
+    }
+
+    private void deleteUserToTable(String user, boolean request) {
         DefaultTableModel model;
         int rowCount;
         if (request) {
@@ -274,8 +286,39 @@ public class ChatForm extends javax.swing.JFrame {
             rowCount = TFriends.getRowCount();
         }
         for (int i = 0; i < rowCount; i++) {
-            if (model.getValueAt(i, 0).equals(string)) {
+            if (model.getValueAt(i, 0).equals(user)) {
                 model.removeRow(i);
+            }
+        }
+    }
+
+    private void addIncomingToTable(String user, boolean add) {
+        DefaultTableModel model = (DefaultTableModel) this.TFriends.getModel();
+        int rowCount = TFriends.getRowCount();
+        for (int i = 0; i < rowCount; i++) {
+            if (model.getValueAt(i, 0).equals(user)) {
+                int incomingMessage = (int) model.getValueAt(i, 2);
+                if (add) {
+                    incomingMessage++;
+                } else {
+                    incomingMessage = 0;
+                }
+                model.setValueAt(incomingMessage, i, 2);
+            }
+        }
+    }
+
+    private void addOnlineToTable(String user) {
+        DefaultTableModel model = (DefaultTableModel) this.TFriends.getModel();
+        int rowCount = TFriends.getRowCount();
+        for (int i = 0; i < rowCount; i++) {
+            if (model.getValueAt(i, 0).equals(user)) {
+                String online = (String) model.getValueAt(i, 1);
+                if (online.equals("Si")) {
+                    model.setValueAt("No", i, 1);
+                } else {
+                    model.setValueAt("Si", i, 1);
+                }
             }
         }
     }
@@ -344,14 +387,14 @@ public class ChatForm extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Friends"
+                "Friends", "Online", "Messages"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.Integer.class
             };
             boolean[] canEdit = new boolean [] {
-                false
+                false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -365,6 +408,8 @@ public class ChatForm extends javax.swing.JFrame {
         jScrollPane3.setViewportView(TFriends);
         if (TFriends.getColumnModel().getColumnCount() > 0) {
             TFriends.getColumnModel().getColumn(0).setResizable(false);
+            TFriends.getColumnModel().getColumn(1).setResizable(false);
+            TFriends.getColumnModel().getColumn(2).setResizable(false);
         }
 
         javax.swing.GroupLayout pFriendLayout = new javax.swing.GroupLayout(pFriend);
@@ -373,10 +418,10 @@ public class ChatForm extends javax.swing.JFrame {
             pFriendLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pFriendLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pFriendLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(pFriendLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addContainerGap())
         );
         pFriendLayout.setVerticalGroup(
             pFriendLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -465,24 +510,22 @@ public class ChatForm extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(14, 14, 14)
-                        .addComponent(pFriend, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(24, 24, 24)
-                        .addComponent(lUser)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(lUser)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 184, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pChat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(14, 14, 14)
+                        .addComponent(pFriend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(tFriendUser, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(bAddFriend)
-                        .addContainerGap())))
+                        .addComponent(bAddFriend))
+                    .addComponent(pChat, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

@@ -5,14 +5,10 @@
  */
 package server;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.IOException;
 import java.util.LinkedList;
-import javax.swing.JOptionPane;
 import server.controllers.Master;
 
 /**
@@ -90,7 +86,7 @@ public class Server implements Runnable {
         String s = "";
     }
 
-    public void broadcast(ClientConnection activeClient, String user, String message) {
+    public synchronized void broadcast(ClientConnection activeClient, String user, String message) {
         for (ClientConnection client : connections) {
             //if (!client.equals(activeClient)) {
             //    client.sendMessageToClient(message);
@@ -98,17 +94,45 @@ public class Server implements Runnable {
             //if (client.user.equalsIgnoreCase(user)) {
             if (user.equalsIgnoreCase(client.user)) {
                 client.sendMessageToClient(message);
+                break; //test
             }
         }
     }
 
-    public boolean userConnected(String user) {
+    public synchronized void broadcastToUsers(String users, String message) {
+        for (ClientConnection client : connections) {
+            if (users.contains(client.user.toUpperCase())) {
+                client.sendMessageToClient(message);
+            }
+        }
+    }
+
+    public synchronized boolean userConnected(String user) {
         for (ClientConnection client : connections) {
             if (user.equalsIgnoreCase(client.user)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public synchronized String getUserOnlineFriends(String friends) {
+        String onlineFriends = "OnlineFriends|";
+        if (!friends.equals("NONE")) {
+            String[] userFriends = friends.split("\\|");
+            for (int i = 1; i < userFriends.length; i++) {
+                String[] fields = userFriends[i].split("\\-");
+                if (Boolean.valueOf(fields[1])) {
+                    if (userConnected(fields[0])) {
+                        onlineFriends = onlineFriends.concat(fields[0]);
+                    }
+                }
+            }
+        }
+        if (onlineFriends.equals("OnlineFriends|")) {
+            onlineFriends = "NONE";
+        }
+        return onlineFriends;
     }
 
 }

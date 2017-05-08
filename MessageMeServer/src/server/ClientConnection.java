@@ -56,6 +56,7 @@ public class ClientConnection extends Thread {
     public void readMessageOfClient(String message) {
         String[] fields = message.split("-");
         int result;
+        String message1, message2;
         switch (fields[0]) {
             case "Login":
                 try {
@@ -63,8 +64,13 @@ public class ClientConnection extends Thread {
                         if (server.master.authenticate(fields[1], fields[2])) {
                             user = fields[1];
                             sendMessageToClient("Login Successfully");
-                            sendMessageToClient(server.master.getUserFriends(user));
+                            String friends = server.master.getUserFriends(user);
+                            sendMessageToClient(friends);
                             sendMessageToClient(server.master.getUserMessages(user));
+                            String onlineFriends = server.getUserOnlineFriends(friends);
+                            sendMessageToClient(onlineFriends);
+                            message1 = "OnlineFriend-" + user.toUpperCase();
+                            server.broadcastToUsers(onlineFriends, message1);
                         } else {
                             sendMessageToClient("Login Unsuccessfully");
                         }
@@ -84,6 +90,8 @@ public class ClientConnection extends Thread {
                 break;
             case "Close":
                 try {
+                    message1 = "OnlineFriend-" + user.toUpperCase();
+                    server.broadcastToUsers(server.getUserOnlineFriends(server.master.getUserFriends(user)), message1);
                     server.disconnect(this);
                 } catch (Exception e) {
                     System.out.println("Server busy, wait");
@@ -100,14 +108,13 @@ public class ClientConnection extends Thread {
             case "FriendRequest":
                 try {
                     result = server.master.friendOrRequestProcessor(fields[1].toUpperCase(), fields[2].toUpperCase(), Boolean.valueOf(fields[3]));
-                    String message1, message2;
                     switch (result) {
                         case 0:
                             server.broadcast(this, fields[1], "Problem or invalid Request!");
                             break;
                         case 1:
-                            message1 = "NewFriend-" + fields[2].toUpperCase();
-                            message2 = "NewFriend-" + fields[1].toUpperCase();
+                            message1 = "NewFriend-" + fields[2].toUpperCase() + "-" + Boolean.toString(server.userConnected(fields[2]));
+                            message2 = "NewFriend-" + fields[1].toUpperCase() + "-" + Boolean.toString(server.userConnected(fields[1]));
                             server.broadcast(this, fields[1], message1);
                             server.broadcast(this, fields[2], message2);
                             break;
