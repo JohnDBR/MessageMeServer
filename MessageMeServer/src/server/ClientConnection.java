@@ -131,6 +131,9 @@ public class ClientConnection extends Thread {
                             server.broadcast(this, fields[1], "Request successfully sent");
                             server.broadcast(this, fields[2], "FriendRequest-" + fields[1].toUpperCase());
                             break;
+                        case 6:
+                            server.broadcast(this, fields[1], "User doesn't exist!");
+                            break;
                     }
                 } catch (Exception e) {
                     System.out.println("Server busy, wait");

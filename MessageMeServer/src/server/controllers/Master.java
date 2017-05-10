@@ -36,7 +36,7 @@ public class Master {
         routeMessages = "./database/Messages.txt";
         loadData();
 
-        //encryptDecryptFile(routeMessages, false);
+        //encryptDecryptFile(routeUser, true);
         //encryptDecryptFile(routeFriends, true);
     }
 
@@ -87,7 +87,8 @@ public class Master {
             while ((linea = br.readLine()) != null) {
                 String[] fields = linea.split("\\|");
 
-                if (encript) { //For all types of files please!!!
+                linea2 = "";
+                if (encript) {
                     for (String field : fields) {
                         linea2 = linea2.concat(Morse(Rotk(field)) + "|");
                     }
@@ -166,6 +167,15 @@ public class Master {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public synchronized boolean userExist(String user) {
+        for (String[] userFields : userFile) {
+            if (userFields[0].equals(user)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public synchronized int addUser(String user, String password, String password1, String level) {
@@ -368,67 +378,71 @@ public class Master {
     public synchronized int friendOrRequestProcessor(String user, String user1, boolean action) {
         boolean bool;
         int o = 0; //Problem or invalid Request!
-        if (friends.containsKey(user + "-" + user1)) {
-            bool = friends.get(user + "-" + user1);
-            if (!bool) {
-                if (action) {
-                    friends.replace(user + "-" + user1, Boolean.TRUE);
-                    if (addToFriendFile(user, user1, false) && eraseToFriendFile(user, user1, true)) {
-                        o = 1; //Friend request accepted!
+        if (userExist(user) && userExist(user1)) {
+            if (friends.containsKey(user + "-" + user1)) {
+                bool = friends.get(user + "-" + user1);
+                if (!bool) {
+                    if (action) {
+                        friends.replace(user + "-" + user1, Boolean.TRUE);
+                        if (addToFriendFile(user, user1, false) && eraseToFriendFile(user, user1, true)) {
+                            o = 1; //Friend request accepted!
+                        } else {
+                            loadFriendsFiles();
+                        }
                     } else {
-                        loadFriendsFiles();
+                        friends.remove(user + "-" + user1);
+                        if (eraseToFriendFile(user, user1, true)) {
+                            o = 2; //Friend request denied!
+                        } else {
+                            loadFriendsFiles();
+                        }
                     }
+                } else if (action) {
+                    o = 3; //The users are friends!  
                 } else {
                     friends.remove(user + "-" + user1);
-                    if (eraseToFriendFile(user, user1, true)) {
-                        o = 2; //Friend request denied!
+                    if (eraseToFriendFile(user, user1, false)) {
+                        o = 4; //Friend deleted!
                     } else {
                         loadFriendsFiles();
                     }
                 }
-            } else if (action) {
-                o = 3; //The users are friends!  
-            } else {
-                friends.remove(user + "-" + user1);
-                if (eraseToFriendFile(user, user1, false)) {
-                    o = 4; //Friend deleted!
-                } else {
-                    loadFriendsFiles();
-                }
-            }
-        } else if (friends.containsKey(user1 + "-" + user)) {
-            bool = friends.get(user1 + "-" + user);
-            if (!bool) {
-                if (action) {
-                    friends.replace(user1 + "-" + user, Boolean.TRUE);
-                    if (addToFriendFile(user1, user, false) && eraseToFriendFile(user1, user, true)) {
-                        o = 1; //Friend request accepted!
+            } else if (friends.containsKey(user1 + "-" + user)) {
+                bool = friends.get(user1 + "-" + user);
+                if (!bool) {
+                    if (action) {
+                        friends.replace(user1 + "-" + user, Boolean.TRUE);
+                        if (addToFriendFile(user1, user, false) && eraseToFriendFile(user1, user, true)) {
+                            o = 1; //Friend request accepted!
+                        } else {
+                            loadFriendsFiles();
+                        }
                     } else {
-                        loadFriendsFiles();
+                        friends.remove(user1 + "-" + user);
+                        if (eraseToFriendFile(user1, user, true)) {
+                            o = 2; //Friend request denied!
+                        } else {
+                            loadFriendsFiles();
+                        }
                     }
+                } else if (action) {
+                    o = 3; //The users are friends!  
                 } else {
                     friends.remove(user1 + "-" + user);
-                    if (eraseToFriendFile(user1, user, true)) {
-                        o = 2; //Friend request denied!
+                    if (eraseToFriendFile(user1, user, false)) {
+                        o = 4; //Friend deleted!
                     } else {
                         loadFriendsFiles();
                     }
                 }
             } else if (action) {
-                o = 3; //The users are friends!  
-            } else {
-                friends.remove(user1 + "-" + user);
-                if (eraseToFriendFile(user1, user, false)) {
-                    o = 4; //Friend deleted!
-                } else {
-                    loadFriendsFiles();
+                friends.put(user + "-" + user1, Boolean.FALSE);
+                if (addToFriendFile(user, user1, true)) {
+                    o = 5; //Request successfully created!   
                 }
             }
-        } else if (action) {
-            friends.put(user + "-" + user1, Boolean.FALSE);
-            if (addToFriendFile(user, user1, true)) {
-                o = 5; //Request successfully created!   
-            }
+        } else {
+            o = 6; //User doesn't exist!
         }
 
         if (o == 0) {

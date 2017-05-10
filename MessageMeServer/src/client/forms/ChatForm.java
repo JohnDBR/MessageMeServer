@@ -257,6 +257,9 @@ public class ChatForm extends javax.swing.JFrame {
                     break;
                 case "DeleteFriend":
                     deleteUserToTable(fields[1], false);
+                    if (fields[1].equals(selectedFriend)) {
+                        enableComponents(pChat, false);
+                    }
                     break;
                 case "OnlineFriend":
                     addOnlineToTable(fields[1]);
@@ -586,7 +589,7 @@ public class ChatForm extends javax.swing.JFrame {
                 String message = "FriendRequest-" + client.getUser() + "-" + selectedFriend + "-false";
                 client.sendMessage(message);
                 tFriendUser.setText("");
-                enableComponents(pChat, false);
+                //enableComponents(pChat, false);
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, "Error al enviar!");
             }
