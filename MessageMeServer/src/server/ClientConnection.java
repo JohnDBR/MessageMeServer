@@ -82,7 +82,7 @@ public class ClientConnection extends Thread {
                 }
                 break;
             case "SignUp":
-                result = server.master.addUser(fields[1], fields[2], fields[3], fields[4]);
+                result = server.master.addUser(fields[1].toUpperCase(), fields[2].toUpperCase(), fields[3].toUpperCase(), fields[4].toUpperCase());
                 if (result == 1) {
                     user = fields[1];
                 }
